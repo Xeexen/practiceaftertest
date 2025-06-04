@@ -14,7 +14,7 @@ data class ApiResponse(
     val id: String? = null,
 
     val source: String,
-//pa dar un push uwuwu
+
     @Column(columnDefinition = "TEXT")
     val rawJson: String
 )

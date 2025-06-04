@@ -35,20 +35,36 @@ jobs:
       run: |
         docker build -t ${{ secrets.DOCKER_USERNAME }}/practicekotlin:latest .
         docker push ${{ secrets.DOCKER_USERNAME }}/practicekotlin:latest
-
   deploy:
     runs-on: ubuntu-latest
     needs: build
-
     steps:
-    - name: Deploy to EC2
-      uses: appleboy/ssh-action@v0.1.3
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          docker pull ${{ secrets.DOCKER_USERNAME }}/practicekotlin:latest
-          docker stop practicekotlin || true
-          docker rm practicekotlin || true
-          docker run -d -p 8080:8080 --name practicekotlin ${{ secrets.DOCKER_USERNAME }}/practicekotlin:latest
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            if ! command -v docker &> /dev/null
+            then
+              echo "Docker no está instalado. Instalando..."
+              sudo apt update -y
+              sudo apt install -y ca-certificates curl gnupg lsb-release
+              sudo mkdir -p /etc/apt/keyrings
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+              echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+              sudo apt update -y
+              sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+              sudo usermod -aG docker $USER
+              echo "Docker instalado."
+              # No se puede cambiar el grupo de este modo en SSH sin re-login, pero al menos Docker ya estará listo para usar con sudo
+            else
+              echo "Docker ya está instalado."
+            fi
+            
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/practicekotlin:latest
+            sudo docker stop practicekotlin || true
+            sudo docker rm practicekotlin || true
+            sudo docker run -d -p 8080:8080 --name practicekotlin ${{ secrets.DOCKER_USERNAME }}/practicekotlin:latest
+            run -d -p 8080:8080 --name practicekotlin ${{ secrets.DOCKER_USERNAME }}/practicekotlin:latest
