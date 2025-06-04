@@ -4,10 +4,15 @@ plugins {
     id("org.springframework.boot") version "3.4.4"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.serialization") version "2.1.20"
+    application
 }
 
 group = "org.example"
 version = "1.0-SNAPSHOT"
+
+application {
+    mainClass.set("org.example.Application")
+}
 
 java {
     toolchain {
@@ -37,5 +42,11 @@ tasks.withType<Test> {
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
+    }
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "org.example.Application"
     }
 }
