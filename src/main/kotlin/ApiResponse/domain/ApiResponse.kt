@@ -6,15 +6,15 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Lob
+import java.util.UUID
 
 @Entity
 data class ApiResponse(
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    val id: String? = null,
+    val id: String = UUID.randomUUID().toString(),
 
-    val source: String,
+    val source: String = "",
 
     @Column(columnDefinition = "TEXT")
-    val rawJson: String
+    val rawJson: String = ""
 )
